@@ -24,6 +24,35 @@ function App() {
   const fetchVariables = async () => {
     try {
       setError(null);
+      
+      // For local development, use a mock response since Netlify functions aren't available
+      if (import.meta.env.DEV) {
+        // Mock data for development
+        const mockData = {
+          records: [
+            {
+              fields: {
+                variable_1: 'Development Value 1',
+                variable_2: 'Development Value 2'
+              }
+            }
+          ]
+        };
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (mockData.records && mockData.records.length > 0) {
+          const latestRecord = mockData.records[0];
+          const variables: Variables = {
+            variable_1: latestRecord.fields.variable_1 || '',
+            variable_2: latestRecord.fields.variable_2 || ''
+          };
+          setCurrentValues(variables);
+        }
+        return;
+      }
+      
       const response = await fetch('/.netlify/functions/airtable-api');
 
       if (!response.ok) {
@@ -58,6 +87,21 @@ function App() {
     setSuccess(false);
 
     try {
+      // For local development, simulate successful update
+      if (import.meta.env.DEV) {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Update current values and clear form
+        setCurrentValues(formValues);
+        setFormValues({ variable_1: '', variable_2: '' });
+        setSuccess(true);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(false), 3000);
+        return;
+      }
+      
       const response = await fetch('/.netlify/functions/airtable-api', {
         method: 'POST',
         headers: {
