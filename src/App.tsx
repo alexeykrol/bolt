@@ -1,76 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Database, AlertCircle, Lock } from 'lucide-react';
+import { RefreshCw, Database, AlertCircle } from 'lucide-react';
 
 interface Variables {
   variable_1: string;
   variable_2: string;
 }
 
-interface LoginProps {
-  onLogin: (password: string) => void;
-  error: string | null;
-}
-
-function LoginForm({ onLogin, error }: LoginProps) {
-  const [password, setPassword] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onLogin(password);
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <Lock className="h-8 w-8 text-blue-600 mr-2" />
-            <h1 className="text-2xl font-bold text-gray-900">Admin Access</h1>
-          </div>
-          <p className="text-gray-600">Enter password to continue</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md flex items-center">
-              <AlertCircle className="h-4 w-4 mr-2" />
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter admin password"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
-            >
-              Login
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authToken, setAuthToken] = useState<string | null>(null);
-  const [loginError, setLoginError] = useState<string | null>(null);
   const [currentValues, setCurrentValues] = useState<Variables>({
     variable_1: '',
     variable_2: ''
@@ -84,35 +20,13 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Handle login
-  const handleLogin = (password: string) => {
-    setAuthToken(password);
-    setIsAuthenticated(true);
-    setLoginError(null);
-  };
-
   // Fetch current values from Airtable
   const fetchVariables = async () => {
-    if (!authToken) return;
-    
     try {
       setError(null);
-      const response = await fetch(
-        '/.netlify/functions/airtable-api',
-        {
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const response = await fetch('/.netlify/functions/airtable-api');
 
       if (!response.ok) {
-        if (response.status === 401) {
-          setIsAuthenticated(false);
-          setLoginError('Invalid password');
-          return;
-        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -138,34 +52,24 @@ function App() {
   // Create new variable record in Airtable
   const createVariableRecord = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!authToken) return;
     
     setIsUpdating(true);
     setError(null);
     setSuccess(false);
 
     try {
-      const response = await fetch(
-        '/.netlify/functions/airtable-api',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            variable_1: formValues.variable_1,
-            variable_2: formValues.variable_2
-          })
-        }
-      );
+      const response = await fetch('/.netlify/functions/airtable-api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          variable_1: formValues.variable_1,
+          variable_2: formValues.variable_2
+        })
+      });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          setIsAuthenticated(false);
-          setLoginError('Session expired');
-          return;
-        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -197,14 +101,8 @@ function App() {
 
   // Fetch variables on component mount
   useEffect(() => {
-    if (isAuthenticated && authToken) {
-      fetchVariables();
-    }
-  }, [isAuthenticated, authToken]);
-
-  if (!isAuthenticated) {
-    return <LoginForm onLogin={handleLogin} error={loginError} />;
-  }
+    fetchVariables();
+  }, []);
 
   if (isLoading) {
     return (

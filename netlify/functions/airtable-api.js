@@ -4,13 +4,11 @@ const AIRTABLE_CONFIG = {
   apiKey: process.env.AIRTABLE_API_KEY
 };
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-
 exports.handler = async (event, context) => {
   // CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
   };
 
@@ -19,16 +17,6 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Simple password authentication
-    const authHeader = event.headers.authorization;
-    if (!authHeader || authHeader !== `Bearer ${ADMIN_PASSWORD}`) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({ error: 'Unauthorized' })
-      };
-    }
-
     const { httpMethod, body } = event;
 
     if (httpMethod === 'GET') {
