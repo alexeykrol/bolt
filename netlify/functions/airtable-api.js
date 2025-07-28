@@ -1,10 +1,10 @@
-const AIRTABLE_CONFIG = {
-  baseId: process.env.AIRTABLE_BASE_ID,
-  tableId: process.env.AIRTABLE_TABLE_ID,
-  apiKey: process.env.AIRTABLE_API_KEY
-};
+export const handler = async (event, context) => {
+  const AIRTABLE_CONFIG = {
+    baseId: process.env.AIRTABLE_BASE_ID,
+    tableId: process.env.AIRTABLE_TABLE_ID,
+    apiKey: process.env.AIRTABLE_API_KEY
+  };
 
-exports.handler = async (event, context) => {
   // CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -91,4 +91,3 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({ error: error.message })
     };
   }
-};
