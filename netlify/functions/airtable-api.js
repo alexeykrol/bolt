@@ -1,4 +1,19 @@
 export const handler = async (event, context) => {
+  // Check if environment variables are set
+  if (!process.env.AIRTABLE_BASE_ID || !process.env.AIRTABLE_TABLE_ID || !process.env.AIRTABLE_API_KEY) {
+    return {
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+      },
+      body: JSON.stringify({ 
+        error: 'Airtable configuration missing. Please set AIRTABLE_BASE_ID, AIRTABLE_TABLE_ID, and AIRTABLE_API_KEY environment variables.' 
+      })
+    };
+  }
+
   const AIRTABLE_CONFIG = {
     baseId: process.env.AIRTABLE_BASE_ID,
     tableId: process.env.AIRTABLE_TABLE_ID,
